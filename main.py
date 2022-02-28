@@ -1,57 +1,7 @@
 import heapq
 from typing import Dict, Optional, Tuple
-
+from utils import generate_hyperspace
 import numpy as np
-import heapq as pq
-
-# dimensions
-DIMENSIONS = 5
-
-# elements in each dimension
-ELEMENTS = 5
-
-# generate elements in each dimension
-dim_ary = [ELEMENTS for x in range(0, DIMENSIONS)]
-
-# generate cell weights for each cell
-cell_weights = np.random.rand(*dim_ary) * 100
-# cell_weights = np.zeros(dim_ary)
-"""
-cell_weights = np.array([[0, 100., 100., 100., 100.],
-                         [0., 100., 100., 100., 100.],
-                         [0., 100., 100., 100., 100.],
-                         [0., 100., 100., 100., 100.],
-                         [0., 0, 0., 0., 0.]])
-
-
-cell_weights = np.array([[[100., 0., 0., 0., 0.],
-                          [0., 100., 0., 0., 0.],
-                          [0., 0., 100., 0., 0.],
-                          [0., 0., 0., 100., 0.],
-                          [0., 0., 0., 0., 100.]],
-                         [[100., 0., 0., 0., 0.],
-                          [0., 100., 0., 0., 0.],
-                          [0., 0., 100., 0., 0.],
-                          [0., 0., 0., 100., 0.],
-                          [0., 0., 0., 0., 100.]],
-                         [[100., 0., 0., 0., 0.],
-                          [0., 100., 0., 0., 0.],
-                          [0., 0., 100., 0., 0.],
-                          [0., 0., 0., 100., 0.],
-                          [0., 0., 0., 0., 100.]],
-                         [[100., 0., 0., 0., 0.],
-                          [0., 100., 0., 0., 0.],
-                          [0., 0., 100., 0., 0.],
-                          [0., 0., 0., 100., 0.],
-                          [0., 0., 0., 0., 100.]],
-                         [[100., 0., 0., 0., 0.],
-                          [0., 100., 0., 0., 0.],
-                          [0., 0., 100., 0., 0.],
-                          [0., 0., 0., 100., 0.],
-                          [0., 0., 0., 0., 100.]]
-                         ])
-                         """
-print(np.shape(cell_weights))
 
 
 def generate_basis(d: int) -> np.ndarray:
@@ -121,8 +71,8 @@ def astar(space: np.ndarray, basis: np.ndarray, start: np.ndarray, end: np.ndarr
     return came_from, costs
 
 
-def reconstruct_path(came_from, start, goal):
-    current = goal
+def reconstruct_path(came_from, start, end):
+    current = end
     path = []
     while current != start:  # note: this will fail if no path found
         path.append(current)
@@ -132,20 +82,21 @@ def reconstruct_path(came_from, start, goal):
     return path
 
 
-"""
+# HS
+hyperspace = generate_hyperspace(dimensions=4, elements=5)
+print(hyperspace)
+# dimensions
+DIMENSIONS = len(np.shape(hyperspace))
+# elements in each dimension, assuming equal extent in each dimension
+ELEMENTS = np.shape(hyperspace)[0]
+print(DIMENSIONS, ELEMENTS)
+# given the hyperspace, calculate start and end point
 start_point = np.zeros(DIMENSIONS, int)
 end_point = np.full(DIMENSIONS, ELEMENTS - 1, int)
+# calculate the possible direction we can travel in the hyperspace. Luckily moving in the direction of the standard
+# basis fullfills all posed requirements. 1) Hamming Distance of one
 standard_basis = generate_basis(DIMENSIONS)
-print(standard_basis)
-print('start: ', start_point)
-print('end: ', end_point)
-print(cell_weights)
-"""
-start_point = np.zeros(DIMENSIONS, int)
-end_point = np.full(DIMENSIONS, ELEMENTS - 1, int)
-standard_basis = generate_basis(DIMENSIONS)
-a, b = astar(cell_weights, standard_basis, start_point, end_point)
-print(a)
-print(b)
-print(reconstruct_path(a, tuple(start_point), tuple(end_point)))
 
+came_from_all, costs_all = astar(hyperspace, standard_basis, start_point, end_point)
+print(costs_all[tuple(end_point)])
+print(reconstruct_path(came_from_all, tuple(start_point), tuple(end_point)))
