@@ -87,7 +87,10 @@ class HyperspaceNavigator:
             # check dimensions
             assert len(start) == self.dimensions, 'start has wrong dimensions'
             assert len(end) == self.dimensions, 'end has wrong dimensions'
-
+            assert np.all(
+                np.asarray(start, int) == start[0]), 'Assumes equal extent of each dimension'
+            assert np.all(
+                np.asarray(end, int) == end[0]), 'Assumes equal extent of each dimension'
         if algorithm == 'astar':
             self._astar(start, end)
 
