@@ -1,52 +1,25 @@
 import numpy as np
 import heapq
-from typing import Dict, Optional, Tuple
-
-
-def distance(p1: np.ndarray, p2: np.ndarray, name='euclidean') -> float:
-    """
-    :param p1: First point as numpy.ndarray
-    :param p2: Second point as numpy.ndarray
-    :param name: Name of the distance metric
-    :return: Distance between p1 and p2 as float according to the chosen metric
-    """
-    if name == 'euclidean':
-        sum_sq = np.sum(np.square(p1 - p2))
-        return np.sqrt(sum_sq)
-    elif name == 'manhattan':
-        return np.sum(np.abs(np.subtract(p1, p2)))
-    else:
-        raise Exception('This metric has not been implemented yet.')
-
+from typing import Dict, Optional, Tuple, List
+from utils import describe_ndarray, distance
 
 class HyperspaceNavigator:
 
     def __init__(self, hyperspace):
-        assert type(hyperspace) == np.ndarray, 'The HyperspaceNavigator works a Hyperspace described by a numpy.ndarray'
+        assert type(hyperspace) == np.ndarray, 'Works only on a Hyperspace described by a numpy.ndarray'
         self.hyperspace = hyperspace
-        self.dimensions, self.extent = self.__describe_hyperspace()
+        self.dimensions, self.extent = describe_ndarray(hyperspace)
+        all_predecessors: dict[tuple, Optional[tuple]] = dict()
+        all_costs: dict[tuple, int] = dict()
 
-    def __describe_hyperspace(self) -> Tuple[int, int]:
-        # get dimensions of the hyperspace
-        dimensions = len(np.shape(self.hyperspace))
-        # extent in each dimension
-        hyperspace_shape = np.shape(self.hyperspace)
-        # assuming equal extent in each dimension
-        assert np.all(
-            np.asarray(hyperspace_shape, int) == hyperspace_shape[0]), 'Assumes equal extent of each dimension'
-        # extent
-        extent = hyperspace_shape[0]
-        self
-        return dimensions, extent
-
-    def __generate_directions(self) -> np.ndarray:
+    def _generate_directions(self) -> np.ndarray:
         tmp_directions = np.zeros((self.dimensions, self.dimensions), int)
         np.fill_diagonal(tmp_directions, 1)
         return tmp_directions
 
-    def __get_neighbors(self, position: np.ndarray) -> list:
+    def _get_neighbors(self, position: np.ndarray) -> list:
         next_positions = []
-        for direction in self.__generate_directions():
+        for direction in self._generate_directions():
             next_position = position + direction
             # the index at which the standard basis is nonzero,
             # holds the dimension we are currently moving
@@ -57,8 +30,7 @@ class HyperspaceNavigator:
 
         return next_positions
 
-    def astar(self, start: np.ndarray, end: np.ndarray) -> \
-            Tuple[Dict[tuple, Optional[tuple]], Dict[tuple, int]]:
+    def _astar(self, start: np.ndarray, end: np.ndarray):
 
         # initialize the frontier as priority queue. The tuple (priority, node) can be handled
         # by the heapq library and builds the heap according to the priority.
@@ -78,7 +50,7 @@ class HyperspaceNavigator:
             if current == tuple(end):
                 break
 
-            for n in self.__get_neighbors(current):
+            for n in self._get_neighbors(current):
 
                 neighbor = tuple(n)
                 # print('new_costs', costs[current])
@@ -91,4 +63,32 @@ class HyperspaceNavigator:
                     heapq.heappush(frontier, (priority, tuple(neighbor)))
                     predecessors[tuple(neighbor)] = current
 
-        return predecessors, costs
+        self.all_predecessors = predecessors
+        self.all_costs = costs
+
+    def _reconstruct_path(self, start: tuple, end: tuple) -> list[tuple]:
+        current = end
+        path = []
+        while current != start:  # note: this will fail if no path found
+            path.append(current)
+            current = self.all_predecessors[current]
+        path.append(start)  # optional
+        path.reverse()  # optional
+        return path, self.all_costs[end]
+
+    def navigate(self, start: tuple = None, end: tuple = None, algorithm='astar') -> tuple[list[tuple], float]:
+        if start is None:
+            start = np.zeros(self.dimensions, int)
+
+        if end is None:
+            end = np.full(self.dimensions, self.extent - 1, int)
+
+        if start is not None or end is not None:
+            # check dimensions
+            assert len(start) == self.dimensions, 'start has wrong dimensions'
+            assert len(end) == self.dimensions, 'end has wrong dimensions'
+
+        if algorithm == 'astar':
+            self._astar(start, end)
+
+        return self._reconstruct_path(tuple(start), tuple(end))

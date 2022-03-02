@@ -104,9 +104,6 @@ came_from_all, costs_all = astar(hyperspace, directions, start_point, end_point)
 print(costs_all[tuple(end_point)])
 #print(reconstruct_path(came_from_all, tuple(start_point), tuple(end_point)))
 
-from HyperspaceNavigator import HyperspaceNavigator
 
-hs = HyperspaceNavigator(hyperspace)
-print(hs._HyperspaceNavigator__describe_hyperspace())
-a, b = hs.astar(start_point, end_point)
-print(b[tuple(end_point)])
+hyperspace_navigator = HyperspaceNavigator(hyperspace)
+print(hyperspace_navigator.navigate())
