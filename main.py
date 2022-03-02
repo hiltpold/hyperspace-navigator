@@ -4,10 +4,10 @@ from utils import generate_hyperspace
 import numpy as np
 
 
-def generate_basis(d: int) -> np.ndarray:
-    tmp_standard_basis = np.zeros((d, d), int)
-    np.fill_diagonal(tmp_standard_basis, 1)
-    return tmp_standard_basis
+def generate_directions(d: int) -> np.ndarray:
+    tmp_directions= np.zeros((d, d), int)
+    np.fill_diagonal(tmp_directions, 1)
+    return tmp_directions
 
 
 def distance(p1: np.ndarray, p2: np.ndarray, name='euclidean') -> float:
@@ -20,28 +20,28 @@ def distance(p1: np.ndarray, p2: np.ndarray, name='euclidean') -> float:
         raise Exception('This metric has not been implemented yet.')
 
 
-def get_neighbors(cell: np.ndarray, basis: np.ndarray, boundary: int) -> list:
-    next_cells = []
-    for b in basis:
-        next_cell = cell + b
+def get_neighbors(position: np.ndarray, directions: np.ndarray, boundary: int) -> list:
+    next_positions = []
+    for direction in directions:
+        next_position = position + direction
         # the index at which the standard basis is nonzero,
         # holds the dimension we are currently moving
-        current_dim = np.nonzero(b)[0]
+        current_dim = np.nonzero(direction)[0]
         # check bounds at this index
-        if next_cell[current_dim] < boundary:
-            next_cells.append(next_cell)
+        if next_position[current_dim] < boundary:
+            next_positions.append(next_position)
 
-    return next_cells
+    return next_positions
 
 
-def astar(space: np.ndarray, basis: np.ndarray, start: np.ndarray, end: np.ndarray) -> \
+def astar(space: np.ndarray, directions: np.ndarray, start: np.ndarray, end: np.ndarray) -> \
         Tuple[Dict[tuple, Optional[tuple]], Dict[tuple, int]]:
     # initialize the frontier as priority queue. The tuple (priority, node) can be handled
     # by the heapq library and builds the heap according to the priority.
     frontier = [(0, tuple(start))]
     heapq.heapify(frontier)
     # helper to keep track of the optimal predecessor.
-    came_from = {tuple(start): None}
+    predecessors = {tuple(start): None}
     # helper to keep track of the curr costs
     costs = {tuple(start): 0}
 
@@ -56,7 +56,7 @@ def astar(space: np.ndarray, basis: np.ndarray, start: np.ndarray, end: np.ndarr
         if current == tuple(end):
             break
 
-        for n in get_neighbors(current, basis, ELEMENTS):
+        for n in get_neighbors(current, directions, ELEMENTS):
             neighbor = tuple(n)
             # print('new_costs', costs[current])
             # print('space',  space[tuple(current)])
@@ -66,9 +66,9 @@ def astar(space: np.ndarray, basis: np.ndarray, start: np.ndarray, end: np.ndarr
                 costs[neighbor] = new_costs
                 priority = new_costs + distance(n, end, name='manhattan')
                 heapq.heappush(frontier, (priority, tuple(neighbor)))
-                came_from[tuple(neighbor)] = current
+                predecessors[tuple(neighbor)] = current
 
-    return came_from, costs
+    return predecessors, costs
 
 
 def reconstruct_path(came_from, start, end):
@@ -88,15 +88,25 @@ print(hyperspace)
 # dimensions
 DIMENSIONS = len(np.shape(hyperspace))
 # elements in each dimension, assuming equal extent in each dimension
-ELEMENTS = np.shape(hyperspace)[0]
+hyperspace_shape = np.shape(hyperspace)
+print(hyperspace_shape[0])
+assert np.all(np.asarray(hyperspace_shape, int) == hyperspace_shape[0]), 'Assumes equal extent of each dimension!'
+ELEMENTS = hyperspace_shape[0]
 print(DIMENSIONS, ELEMENTS)
 # given the hyperspace, calculate start and end point
 start_point = np.zeros(DIMENSIONS, int)
 end_point = np.full(DIMENSIONS, ELEMENTS - 1, int)
 # calculate the possible direction we can travel in the hyperspace. Luckily moving in the direction of the standard
 # basis fullfills all posed requirements. 1) Hamming Distance of one
-standard_basis = generate_basis(DIMENSIONS)
+directions = generate_directions(DIMENSIONS)
 
-came_from_all, costs_all = astar(hyperspace, standard_basis, start_point, end_point)
+came_from_all, costs_all = astar(hyperspace, directions, start_point, end_point)
 print(costs_all[tuple(end_point)])
-print(reconstruct_path(came_from_all, tuple(start_point), tuple(end_point)))
+#print(reconstruct_path(came_from_all, tuple(start_point), tuple(end_point)))
+
+from HyperspaceNavigator import HyperspaceNavigator
+
+hs = HyperspaceNavigator(hyperspace)
+print(hs._HyperspaceNavigator__describe_hyperspace())
+a, b = hs.astar(start_point, end_point)
+print(b[tuple(end_point)])
