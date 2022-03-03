@@ -8,17 +8,17 @@ def generate_hyperspace(dimensions: int, elements: int) -> np.ndarray:
     return hyperspace
 
 
-def distance(p1: np.ndarray, p2: np.ndarray, name='euclidean') -> float:
+def distance(p1: np.ndarray, p2: np.ndarray, metric_name='euclidean') -> float:
     """
     :param p1: First point as numpy.ndarray
     :param p2: Second point as numpy.ndarray
-    :param name: Name of the distance metric
+    :param metric_name: Name of the distance metric
     :return: Distance between p1 and p2 as float according to the chosen metric
     """
-    if name == 'euclidean':
+    if metric_name == 'euclidean':
         sum_sq = np.sum(np.square(p1 - p2))
         return np.sqrt(sum_sq)
-    elif name == 'manhattan':
+    elif metric_name == 'manhattan':
         return np.sum(np.abs(np.subtract(p1, p2)))
     else:
         raise Exception('This metric has not been implemented yet.')

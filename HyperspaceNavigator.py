@@ -3,14 +3,17 @@ import heapq
 from typing import Dict, Optional, Tuple, List
 from utils import describe_ndarray, distance
 
+
 class HyperspaceNavigator:
 
     def __init__(self, hyperspace):
         assert type(hyperspace) == np.ndarray, 'Works only on a Hyperspace described by a numpy.ndarray'
-        self.hyperspace = hyperspace
+        self.hyperspace: np.ndarray = hyperspace
+        self.dimensions: int
+        self.extent: int
         self.dimensions, self.extent = describe_ndarray(hyperspace)
-        all_predecessors: dict[tuple, Optional[tuple]] = dict()
-        all_costs: dict[tuple, int] = dict()
+        self.all_predecessors: dict[tuple, Optional[tuple]] = dict()
+        self.all_costs: dict[tuple, int] = dict()
 
     def _generate_directions(self) -> np.ndarray:
         tmp_directions = np.zeros((self.dimensions, self.dimensions), int)
@@ -30,7 +33,7 @@ class HyperspaceNavigator:
 
         return next_positions
 
-    def _astar(self, start: np.ndarray, end: np.ndarray):
+    def _astar(self, start: np.ndarray, end: np.ndarray, metric='manhattan'):
 
         # initialize the frontier as priority queue. The tuple (priority, node) can be handled
         # by the heapq library and builds the heap according to the priority.
@@ -59,7 +62,7 @@ class HyperspaceNavigator:
                 # print('neighbor', neighbor)
                 if neighbor not in costs or new_costs < costs[neighbor]:
                     costs[neighbor] = new_costs
-                    priority = new_costs + distance(n, end, name='manhattan')
+                    priority = new_costs + distance(n, end, metric)
                     heapq.heappush(frontier, (priority, tuple(neighbor)))
                     predecessors[tuple(neighbor)] = current
 
@@ -88,9 +91,10 @@ class HyperspaceNavigator:
             assert len(start) == self.dimensions, 'start has wrong dimensions'
             assert len(end) == self.dimensions, 'end has wrong dimensions'
             assert np.all(
-                np.asarray(start, int) == start[0]), 'Assumes equal extent of each dimension'
+                np.asarray(start, int) == start[0]), 'Assumes equal extent in each dimension'
             assert np.all(
-                np.asarray(end, int) == end[0]), 'Assumes equal extent of each dimension'
+                np.asarray(end, int) == end[0]), 'Assumes equal extent in each dimension'
+
         if algorithm == 'astar':
             self._astar(start, end)
 

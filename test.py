@@ -58,7 +58,6 @@ class TestHyperSpaceNavigator(unittest.TestCase):
         self.assertEqual(actual_costs, 0)
 
     def test_3D_1(self):
-
         hyperspace_navigator = HyperspaceNavigator(hyperspace_3D_1)
         actual_path_3D_1, actual_costs = hyperspace_navigator.navigate()
         expected_path_3D_1 = [(0, 0, 0), (0, 0, 1), (0, 0, 2), (0, 0, 3), (0, 0, 4), (1, 0, 4), (2, 0, 4), (3, 0, 4),
