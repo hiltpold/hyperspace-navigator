@@ -7,9 +7,16 @@ def main():
     hyperspace_navigator = HyperspaceNavigator(hyperspace)
     start = (0, 0, 0, 0, 0)
     end = (4, 4, 4, 4, 4)
-    path, cost = hyperspace_navigator.navigate(start, end)
-    print(f'Costs for Traveling from {start} - {end}: {cost}')
-    print(f'Calculated fastest route:\n {path}')
+    path_astar, cost_astar = hyperspace_navigator.navigate(start, end, algorithm='astar', metric='euclidean')
+    #path_dijkstra, cost_dijkstra = hyperspace_navigator.navigate(start, end, algorithm='astar', metric='euclidean')
+
+    #print(f'Generate Hyperspace:\n{hyperspace}')
+    #print()
+    #print(f'Costs for traveling from {start} - {end}: {cost_astar}')
+    print(f'Costs for traveling from {start} - {end}: {cost_astar}')
+    print()
+    print(f'Calculated fastest route:\n{path_astar}')
+    #print(f'Calculated fastest route:\n{path_dijkstra}')
 
 
 if __name__ == "__main__":

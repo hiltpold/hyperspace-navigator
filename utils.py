@@ -4,7 +4,7 @@ from typing import Tuple
 
 def generate_hyperspace(dimensions: int, elements: int) -> np.ndarray:
     dim_ary = [elements for x in range(0, dimensions)]
-    hyperspace = np.random.random_sample(tuple(dim_ary))
+    hyperspace = np.random.random_sample(tuple(dim_ary))*100
     return hyperspace
 
 

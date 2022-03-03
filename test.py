@@ -1,6 +1,7 @@
 import unittest
 import numpy as np
 from HyperspaceNavigator import HyperspaceNavigator
+from utils import generate_hyperspace
 
 hyperspace_2D_1 = np.array([[0., 100., 100., 100., 100.],
                             [0., 100., 100., 100., 100.],
@@ -64,3 +65,10 @@ class TestHyperSpaceNavigator(unittest.TestCase):
                               (4, 0, 4), (4, 1, 4), (4, 2, 4), (4, 3, 4), (4, 4, 4)]
         self.assertEqual(actual_path_3D_1, expected_path_3D_1)
         self.assertEqual(actual_costs, 0)
+
+    def test_astar_dijkstra(self):
+        hyperspace_navigator = HyperspaceNavigator(generate_hyperspace(5, 5))
+        path_astar, costs_astar = hyperspace_navigator.navigate(algorithm='astar')
+        path_dijkstra, costs_dijkstra = hyperspace_navigator.navigate(algorithm='dijkstra')
+        self.assertEqual(path_astar, path_dijkstra)
+        self.assertEqual(costs_astar, costs_dijkstra)

@@ -69,6 +69,41 @@ class HyperspaceNavigator:
         self.all_predecessors = predecessors
         self.all_costs = costs
 
+    def _shortest_path(self, start: np.ndarray, end: np.ndarray, algorithm: str, metric: str):
+
+        # initialize the frontier as priority queue. The tuple (priority, node) can be handled
+        # by the heapq library and builds the heap according to the priority.
+        frontier = [(0, tuple(start))]
+        heapq.heapify(frontier)
+
+        # helper to keep track of the optimal predecessor.
+        predecessors = {tuple(start): None}
+
+        # helper to keep track of the curr costs
+        costs = {tuple(start): 0}
+        # iterate main loop until frontier is empty
+        while not len(frontier) == 0:
+            current = heapq.heappop(frontier)[1]
+
+            # reached the target, exit loop
+            if current == tuple(end):
+                break
+
+            for n in self._get_neighbors(current):
+                neighbor = tuple(n)
+                # print('new_costs', costs[current])
+                # print('space',  space[tuple(current)])
+                new_costs = costs[tuple(current)] + self.hyperspace[tuple(current)]
+                # print('neighbor', neighbor)
+                if neighbor not in costs or new_costs < costs[neighbor]:
+                    costs[neighbor] = new_costs
+                    priority = new_costs if algorithm == 'dijkstra' else new_costs + distance(n, end, metric)
+                    heapq.heappush(frontier, (priority, tuple(neighbor)))
+                    predecessors[tuple(neighbor)] = current
+
+        self.all_predecessors = predecessors
+        self.all_costs = costs
+
     def _reconstruct_path(self, start: tuple, end: tuple) -> list[tuple]:
         current = end
         path = []
@@ -79,7 +114,7 @@ class HyperspaceNavigator:
         path.reverse()  # optional
         return path, self.all_costs[end]
 
-    def navigate(self, start: tuple = None, end: tuple = None, algorithm='astar') -> tuple[list[tuple], float]:
+    def navigate(self, start: tuple = None, end: tuple = None, algorithm='astar', metric='manhattan') -> tuple[list[tuple], float]:
         if start is None:
             start = np.zeros(self.dimensions, int)
 
@@ -95,7 +130,9 @@ class HyperspaceNavigator:
             assert np.all(
                 np.asarray(end, int) == end[0]), 'Assumes equal extent in each dimension'
 
-        if algorithm == 'astar':
-            self._astar(start, end)
+        assert algorithm in {'astar', 'dijkstra'}, 'choose either "astar" or "dijkstra" as algorithm parameter'
+
+
+        self._shortest_path(start, end, algorithm, metric)
 
         return self._reconstruct_path(tuple(start), tuple(end))
