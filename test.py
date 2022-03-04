@@ -1,7 +1,7 @@
 import unittest
 import numpy as np
 from HyperspaceNavigator import HyperspaceNavigator
-from utils import generate_hyperspace
+from utils import generate_hyperspace, distance
 
 hyperspace_2D_1 = np.array([[0., 100., 100., 100., 100.],
                             [0., 100., 100., 100., 100.],
@@ -44,6 +44,21 @@ hyperspace_3D_1 = np.array([[[0., 0., 0., 0., 0.],
 
 
 class TestHyperSpaceNavigator(unittest.TestCase):
+    def test_metric_1(self):
+        a = np.zeros(10, int)
+        b = np.zeros(10, int)
+        self.assertEqual(distance(a, b, 'euclidean'), 0)
+
+    def test_metric_2(self):
+        a = np.array([0,0,0,0,1])
+        b = np.array([0,0,0,0,0])
+        self.assertEqual(distance(a, b, 'euclidean'), 1)
+
+    def test_metric_3(self):
+        a = np.array([0,0])
+        b = np.array([2,2])
+        self.assertEqual(distance(a, b, 'manhattan'), 4)
+
     def test_2D_1(self):
         hyperspace_navigator = HyperspaceNavigator(hyperspace_2D_1)
         actual_path_2D_1, actual_costs = hyperspace_navigator.navigate()
@@ -67,6 +82,7 @@ class TestHyperSpaceNavigator(unittest.TestCase):
         self.assertEqual(actual_costs, 0)
 
     def test_astar_dijkstra(self):
+        # as admissibility is given, both paths are optimal
         hyperspace_navigator = HyperspaceNavigator(generate_hyperspace(5, 5))
         path_astar, costs_astar = hyperspace_navigator.navigate(algorithm='astar')
         path_dijkstra, costs_dijkstra = hyperspace_navigator.navigate(algorithm='dijkstra')

@@ -3,7 +3,13 @@ from typing import Tuple
 
 
 def generate_hyperspace(dimensions: int, elements: int) -> np.ndarray:
+    """
+    :param dimensions: Dimensions of the hyperspace
+    :param elements: Extent of each dimension
+    :return: Hyperspace represented as numpy.ndarray
+    """
     dim_ary = [elements for x in range(0, dimensions)]
+    # generate hyperspace such that weights are all >= 1 and then the admissibility of the heuristic is always given.
     hyperspace = np.random.random_sample(tuple(dim_ary))*100
     return hyperspace
 
